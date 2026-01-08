@@ -1,0 +1,55 @@
+name: Process New Issue
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run issue processing script
+        id: run_script
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          OUTPUT=$(python scripts/process_issue.py)
+          echo "$OUTPUT"
+
+          while read line; do
+            echo "$line" >> $GITHUB_OUTPUT
+          done <<< "$OUTPUT"
+
+      - name: Comment back on the issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `
+### ✅ Issue Processed
+
+**Service:** ${{ steps.run_script.outputs.SERVICE }}
+**Environment:** ${{ steps.run_script.outputs.ENVIRONMENT }}
+**Version:** ${{ steps.run_script.outputs.VERSION }}
+
+🔗 **Concatenated Value:**  
+\`${{ steps.run_script.outputs.COMBINED }}\`
+            `;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
