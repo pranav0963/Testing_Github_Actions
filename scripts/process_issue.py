@@ -1,36 +1,18 @@
 import os
-import re
-import sys
 
-def extract_field(body, field_name):
-    """
-    Extracts field value from GitHub issue template body
-    """
-    pattern = rf"### {field_name}\s*(.+)"
-    match = re.search(pattern, body)
-    return match.group(1).strip() if match else "NOT_FOUND"
+issue_title = os.getenv("ISSUE_TITLE", "")
+issue_body = os.getenv("ISSUE_BODY", "")
 
+# Example: extract simple fields from issue body
+# (works well with issue templates)
+lines = issue_body.splitlines()
+fields = [line for line in lines if ":" in line]
 
-def main():
-    issue_body = os.getenv("ISSUE_BODY")
+result = "### 🔍 Processed Issue Data\n\n"
+result += f"**Title:** {issue_title}\n\n"
+result += "**Extracted Fields:**\n"
 
-    if not issue_body:
-        print("ERROR: ISSUE_BODY not found")
-        sys.exit(1)
+for field in fields:
+    result += f"- {field}\n"
 
-    service = extract_field(issue_body, "Service Name")
-    environment = extract_field(issue_body, "Environment")
-    version = extract_field(issue_body, "Version")
-
-    # Your business logic
-    combined = f"{service}-{environment}-{version}"
-
-    # This exact format will be read by GitHub Actions
-    print("SERVICE=" + service)
-    print("ENVIRONMENT=" + environment)
-    print("VERSION=" + version)
-    print("COMBINED=" + combined)
-
-
-if __name__ == "__main__":
-    main()
+print(result)
