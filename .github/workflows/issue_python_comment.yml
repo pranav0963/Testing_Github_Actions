@@ -1,27 +1,75 @@
-# .github/workflows/on-issue-create.yml
-name: Issue Created Trigger
+name: Trigger Issue Processing
 
 on:
   issues:
     types: [opened]
 
 jobs:
-  trigger-repo-b:
+  trigger-processing:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Trigger Github Actions
+      - name: Extract issue inputs
+        id: extract
+        run: |
+          BODY="${{ github.event.issue.body }}"
+          TITLE="${{ github.event.issue.title }}"
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          REPO_OWNER="${{ github.repository_owner }}"
+          REPO_NAME="${{ github.event.repository.name }}"
+
+          # Extract fields from issue body
+          agent_name=$(echo "$BODY" | awk '/### Agent Name/{getline; getline; print}')
+          image=$(echo "$BODY" | awk '/### Image/{getline; getline; print}')
+          model=$(echo "$BODY" | awk '/### Model/{getline; getline; print}')
+          test_type=$(echo "$BODY" | awk '/### Test Type/{getline; getline; print}')
+          tool_call_eval=$(echo "$BODY" | awk '/### Tool Call Evaluation/{getline; getline; print}')
+
+          if [[ -z "$agent_name" || -z "$test_type" ]]; then
+            echo "❌ Missing required inputs"
+            exit 1
+          fi
+
+          echo "agent_name=$agent_name" >> $GITHUB_OUTPUT
+          echo "image=$image" >> $GITHUB_OUTPUT
+          echo "model=$model" >> $GITHUB_OUTPUT
+          echo "test_type=$test_type" >> $GITHUB_OUTPUT
+          echo "tool_call_eval=$tool_call_eval" >> $GITHUB_OUTPUT
+          echo "issue_title=$TITLE" >> $GITHUB_OUTPUT
+          echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+          echo "issue_body=$BODY" >> $GITHUB_OUTPUT
+          echo "repo_owner=$REPO_OWNER" >> $GITHUB_OUTPUT
+          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+
+      - name: Trigger Triggering_Github_Actions workflow
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.DISPATCH_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository_owner }}/Triggering_Githut_Actions/dispatches \
+            -d '{
+              "event_type": "process_issue",
+              "client_payload": {
+                "issue_title": "${{ steps.extract.outputs.issue_title }}",
+                "issue_body": ${{ toJSON(steps.extract.outputs.issue_body) }},
+                "issue_number": "${{ steps.extract.outputs.issue_number }}",
+                "agent_name": "${{ steps.extract.outputs.agent_name }}",
+                "image": "${{ steps.extract.outputs.image }}",
+                "model": "${{ steps.extract.outputs.model }}",
+                "test_type": "${{ steps.extract.outputs.test_type }}",
+                "tool_call_eval": "${{ steps.extract.outputs.tool_call_eval }}",
+                "source_repo_owner": "${{ steps.extract.outputs.repo_owner }}",
+                "source_repo_name": "${{ steps.extract.outputs.repo_name }}"
+              }
+            }'
+
+      - name: Post acknowledgment comment
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.PAT }}
           script: |
-            await github.rest.repos.createDispatchEvent({
-              owner: 'pranav0963',
-              repo: 'Triggering_Github_Actions',
-              event_type: 'issue-created',
-              client_payload: {
-                title: context.payload.issue.title,
-                body: context.payload.issue.body,
-                issue_number: context.payload.issue.number,
-                repo: context.payload.repository.full_name
-              }
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚀 **Processing Started**\n\nYour issue has been received and is being processed. The results will be posted here shortly.'
             })
