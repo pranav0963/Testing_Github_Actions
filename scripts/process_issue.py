@@ -3,6 +3,7 @@ import re
 
 issue_title = os.getenv("ISSUE_TITLE", "")
 issue_body = os.getenv("ISSUE_BODY", "")
+dummy_api = os.getenv("DUMMY_API", "")
 
 def extract_field(label, text):
     pattern = rf"### {label}\s+([^\n]+)"
@@ -20,6 +21,7 @@ output = f"""
 **Service Name:** {service_name}  
 **Environment:** {environment}  
 **Version:** {version}
+**Dummy Env:** {dummy_api}
 
 🔧 _This information was auto-processed by GitHub Actions._
 """
