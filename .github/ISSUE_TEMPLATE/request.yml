@@ -33,12 +33,18 @@ body:
     validations:
       required: true
 
-  - type: input
+  - type: dropdown
     id: model
     attributes:
       label: Model
-      description: Model decides the namespace in deployment
-      placeholder: e.g., ibm/granite-3-3-8b-instruct
+      description: Select the model
+      options:
+        - 'meta-llama/llama-3-3-70b-instruct'
+        - 'ibm/granite-3-3-8b-instruct'
+        - 'ibm-granite/granite-3-z-8b-instruct'
+        - 'ibm-granite/granite-4.0-micro'
+        - 'openai/gpt-oss-20b'
+        - 'ibm-granite/granite-4.0-8b'
     validations:
       required: true
 

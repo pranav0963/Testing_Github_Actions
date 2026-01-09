@@ -1,50 +1,27 @@
-name: Run Python and comment on issue
+# .github/workflows/on-issue-create.yml
+name: Issue Created Trigger
 
 on:
   issues:
     types: [opened]
 
-permissions:
-  issues: write
-  contents: read
-
 jobs:
-  run-python-and-comment:
+  trigger-repo-b:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies (if any)
-        run: |
-          pip install -r requirements.txt || true
-
-      - name: Run Python script
-        id: run_script
-        env:
-          ISSUE_BODY: ${{ github.event.issue.body }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          DUMMY_API: ${{ secrets.DUMMY_API}}
-        run: |
-          python scripts/process_issue.py > output.txt
-          echo "RESULT<<EOF" >> $GITHUB_ENV
-          cat output.txt >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Comment on issue
+      - name: Trigger Github Actions
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PAT }}
           script: |
-            const body = process.env.RESULT;
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: body
-            });
+            await github.rest.repos.createDispatchEvent({
+              owner: 'pranav0963',
+              repo: 'Triggering_Github_Actions',
+              event_type: 'issue-created',
+              client_payload: {
+                title: context.payload.issue.title,
+                body: context.payload.issue.body,
+                issue_number: context.payload.issue.number,
+                repo: context.payload.repository.full_name
+              }
+            })
