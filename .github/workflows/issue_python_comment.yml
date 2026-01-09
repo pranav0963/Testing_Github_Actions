@@ -30,6 +30,7 @@ jobs:
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
+          DUMMY_API: ${{ secrets.DUMMY_API}}
         run: |
           python scripts/process_issue.py > output.txt
           echo "RESULT<<EOF" >> $GITHUB_ENV
