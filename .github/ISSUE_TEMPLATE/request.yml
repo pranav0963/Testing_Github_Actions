@@ -3,26 +3,65 @@ description: Provide details to trigger the pipeline
 title: "[Trigger]: "
 labels: ["pipeline"]
 body:
-  - type: input
-    id: service_name
+  - type: dropdown
+    id: agent_name
     attributes:
-      label: Service Name
-      placeholder: example-service
+      label: Agent Name
+      description: Select the agent to use
+      options:
+        - db2
+        - operationsagent
+        - cics
+        - cics-pd-agent
+        - ims
+        - ims-mcp-agent
+        - upgradeagent
+        - upgradeagent-zosmf-v2
+        - tls-agent
+        - aiopsagent
+        - automation-insights
+        - workload-scheduler-agent
     validations:
       required: true
 
   - type: input
-    id: environment
+    id: image
     attributes:
-      label: Environment
-      placeholder: dev / qa / prod
+      label: Image
+      description: Specify the container image to use
+      placeholder: e.g., icr.io/wxa4z-agentic-development/upgrade-agent:granite-4-8b
     validations:
       required: true
 
   - type: input
-    id: version
+    id: model
     attributes:
-      label: Version
-      placeholder: v1.0.0
+      label: Model
+      description: Model decides the namespace in deployment
+      placeholder: e.g., ibm/granite-3-3-8b-instruct
     validations:
       required: true
+
+  - type: dropdown
+    id: test_type
+    attributes:
+      label: Test Type
+      description: Select the test type
+      options:
+        - direct
+        - wxo
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tool_call_eval
+    attributes:
+      label: Tool Call Evaluation
+      description: Enable or disable tool call evaluation
+      options:
+        - "true"
+        - "false"
+    validations:
+      required: true
+
+# Made with Bob

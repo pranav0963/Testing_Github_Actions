@@ -10,20 +10,27 @@ def extract_field(label, text):
     match = re.search(pattern, text)
     return match.group(1).strip() if match else "Not provided"
 
-service_name = extract_field("Service Name", issue_body)
-environment = extract_field("Environment", issue_body)
-version = extract_field("Version", issue_body)
+# Extract all fields from the issue body
+agent_name = extract_field("Agent Name", issue_body)
+image = extract_field("Image", issue_body)
+model = extract_field("Model", issue_body)
+test_type = extract_field("Test Type", issue_body)
+tool_call_eval = extract_field("Tool Call Evaluation", issue_body)
 
-# Concatenate or process as needed
+# Print all variables
 output = f"""
 ### ✅ Issue {issue_title} Processed Successfully
 
-**Service Name:** {service_name}  
-**Environment:** {environment}  
-**Version:** {version}
-**Dummy Env:** {dummy_api}
+**Agent Name:** {agent_name}  
+**Image:** {image}  
+**Model:** {model}  
+**Test Type:** {test_type}  
+**Tool Call Evaluation:** {tool_call_eval}  
+**Dummy API:** {dummy_api}
 
 🔧 _This information was auto-processed by GitHub Actions._
 """
 
 print(output.strip())
+
+# Made with Bob
